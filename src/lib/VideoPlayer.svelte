@@ -1,26 +1,40 @@
-<script>
-	export let src = undefined;
-
-	let paused = true;
-	let currentTime = 0;
-	let volume = 0;
+<script context="module">
+	let allVideos = new Set();
 </script>
 
-<video class:playing={!paused} {src} controls muted bind:paused bind:volume bind:currentTime />
+<script>
+	import { onDestroy, onMount } from 'svelte';
 
-<button
-	on:click={() => {
-		paused = !paused;
+	export let src = undefined;
+
+	let video;
+	let paused = true;
+
+	onMount(() => {
+		allVideos.add(video);
+	});
+
+	onDestroy(() => {
+		allVideos.delete(video);
+	});
+</script>
+
+<video
+	{src}
+	muted
+	controls
+	class:playing={!paused}
+	bind:this={video}
+	bind:paused
+	on:play={() => {
+		allVideos.forEach((_video) => {
+			if (_video !== video) _video.pause();
+		});
 	}}
->
-	{paused ? 'Play' : 'Pause'}
-</button>
-
-<p>{currentTime}</p>
-<p>{volume}</p>
+/>
 
 <style lang="scss">
 	video.playing {
-    box-shadow: var(--buttonBgColor) 0 1.25rem 2rem -0.65rem;
+		box-shadow: var(--buttonBgColor) 0 1.25rem 2rem -0.65rem;
 	}
 </style>
